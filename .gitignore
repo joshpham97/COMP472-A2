@@ -112,3 +112,18 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Pyharm
+# Default ignored files
+/shelf/
+/workspace.xml
+# Datasource local storage ignored files
+/../../../../../../../../:\Users\thuan\Desktop\STUDY\COMP 472\A2\.idea/dataSources/
+/dataSources.local.xml
+# Editor-based HTTP Client requests
+/httpRequests/
+.idea/A2.iml
+.idea/inspectionProfiles/profiles_settings.xml
+.idea/inspectionProfiles/Project_Default.xml
+.idea/misc.xml
+.idea/modules.xml
