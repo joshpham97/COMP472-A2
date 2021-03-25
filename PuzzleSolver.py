@@ -7,7 +7,7 @@ class PuzzleSolver:
     goal_state = [1, 2, 3, 4, 5, 6, 7, 8, 9]
     nodes_expanded = 0
     max_frontier_size = 0
-    goal_node = 0
+    goal_node = None
     max_search_depth = 0
     moves = None
     board_len = 0
@@ -29,12 +29,13 @@ class PuzzleSolver:
 
         self.algorithm = algorithm
 
-
     def run(self):
         if self.algorithm == "dfs":
             self.dfs()
+        elif self.algorithm == "idp":
+            self.idp()
 
-    def dfs(self):
+    def dfs(self, threshold=0):
         explored, stack = set(), list([State(self.initial_state, None, None, 0, 0, 0, 0)])
 
         while stack:
@@ -46,8 +47,11 @@ class PuzzleSolver:
                 self.goal_node = node
                 return stack
 
-            # ???
-            neighbors = reversed(self.expand(node))
+            # If there is no threshold, or we have not yet reach the threshold, we just continue
+            if threshold <= 0 or self.max_search_depth < threshold:
+                neighbors = reversed(self.expand(node)) # why reverse?
+            else:
+                neighbors = list()
 
             # For each neighboring states, we check whether it is already explored or not
             for neighbor in neighbors:
@@ -56,13 +60,28 @@ class PuzzleSolver:
                     stack.append(neighbor)
                     explored.add(neighbor.map)
 
-                    # Used for iterative deepening
+                    # Compute the current depth
                     if neighbor.depth > self.max_search_depth:
                         self.max_search_depth += 1
 
             # ???
             if len(stack) > self.max_frontier_size:
                 self.max_frontier_size = len(stack)
+
+    def idp(self):
+        # Initialize the max depth to the dimension of the board
+        threshold = 1
+        previous_max_depth = self.max_search_depth
+
+        while True:
+            print("One iteration")
+            self.dfs(threshold)
+
+            # If we could not find the solution with the given threshold or we have reached the deepest level
+            if self.goal_node is not None or self.max_search_depth < threshold:
+                break
+
+            threshold += 1
 
     def expand(self, current_state):
         self.nodes_expanded += 1
