@@ -30,7 +30,7 @@ class PuzzleSolver:
 
     puzzle_list = list()
 
-    def __init__(self, path, algorithm):
+    def __init__(self, path):
 
         f = open(path, "r")
         inputText = f.readlines()
@@ -46,7 +46,6 @@ class PuzzleSolver:
                 for col in row:
                     puzzle.append(col)
             self.puzzle_list.append(puzzle)
-        self.algorithm = algorithm
 
     def reset_state(self):
         self.initial_state = None
@@ -68,18 +67,30 @@ class PuzzleSolver:
 
     def run(self):
         for puzzle in self.puzzle_list:
-            self.reset_state()
-            self.start = timeit.default_timer()
-            self.set_new_state(puzzle)
+            for i in range(5):
+                self.reset_state()
+                self.start = timeit.default_timer()
+                self.set_new_state(puzzle)
+                algorithm = ""
+                if i == 0:
+                    self.dfs()
+                    algorithm = "dfs"
+                elif i == 1:
+                    self.idp()
+                    algorithm = "idp"
+                elif i == 2:
+                    self.ast("h1")
+                    algorithm = "ast_h1(manhattan)"
+                elif i == 3:
+                    self.ast("h2")
+                    algorithm = "ast_h2(euclidean_distances)"
+                elif i == 4:
+                    self.ast("h3")
+                    algorithm = "ast_h3(out_row_column)"
+                solution_name = self.flatten_puzzle(puzzle, algorithm)
+                self.export(solution_name)
 
-            if self.algorithm == "dfs":
-                self.dfs()
-            elif self.algorithm == "idp":
-                self.idp()
-            elif self.algorithm == "ast":
-                self.ast()
 
-            self.export()
 
     def dfs(self, threshold=0):
         explored, stack = set(), list([State(self.initial_state, None, None, 0, 0, 0, 0)])
@@ -130,7 +141,7 @@ class PuzzleSolver:
         while True and time_limit_exceeded(limit):
             # print("One iteration")
             self.dfs(threshold)
-            print("\n\n")
+            # print("\n\n")
 
             # If we could not find the solution with the given threshold or we have reached the deepest level
             if self.goal_node is not None or self.max_search_depth < threshold:
@@ -138,11 +149,15 @@ class PuzzleSolver:
             threshold += 1
 
 
-    def ast(self):
+    def ast(self, heur):
+        try:
+            heuristic = getattr(self, heur)
+        except AttributeError:
+            raise NotImplementedError("Class `{}` does not implement `{}`".format(self.__class__.__name__, heur))
         limit = perf_counter() + 60
         explored, heap, heap_entry, counter = set(), list(), {}, itertools.count()
         # calculate the heuristic
-        key = self.h1(self.initial_state)
+        key = heuristic(self.initial_state)
 
         # create the root of our A*
         root = State(self.initial_state, None, None, None, 0, 0, key)
@@ -171,7 +186,7 @@ class PuzzleSolver:
             for neighbor in neighbors:
 
                 #check the heuristic of all children of this node
-                neighbor.key = neighbor.cost + self.h1(neighbor.state)
+                neighbor.key = neighbor.cost + heuristic(neighbor.state)
                 entry = (neighbor.key, neighbor.move, neighbor)
 
                 # append it to our heapmap to visit if its a new entry
@@ -254,7 +269,7 @@ class PuzzleSolver:
 
         return moves
 
-    def export(self):
+    def export(self, solution_file_name):
 
         stop = timeit.default_timer()
 
@@ -262,7 +277,7 @@ class PuzzleSolver:
             time = stop - self.start
             moves = self.backtrace()
 
-            file = open('output.txt', 'a')
+            file = open(solution_file_name, 'w')
             file.write("path_to_goal: " + str(moves))
             file.write("\ncost_of_path: " + str(len(moves)))
             file.write("\nnodes_expanded: " + str(self.nodes_expanded))
@@ -272,7 +287,7 @@ class PuzzleSolver:
             file.write("\nrunning_time: " + format(time, '.8f') + "\n\n\n")
             file.close()
         else:
-            file = open('output.txt', 'a')
+            file = open(solution_file_name, 'w')
             file.write("puzzle: " + str(self.initial_state))
             file.write("\nexceed_time_limit: 60sec\n\n\n")
             file.close()
@@ -294,3 +309,13 @@ class PuzzleSolver:
                    (board_index % self.board_side != goal_index % self.board_side)
                    for board_index, goal_index in ((state.index(i), self.goal_state.index(i))
                                                    for i in range(1, self.board_len+1)))
+
+
+
+    def flatten_puzzle(self, puzzle, algo):
+        flatten_str = ""
+        for i, e in enumerate(puzzle):
+            flatten_str += str(e)
+            if (i+1) % self.board_side == 0:
+                flatten_str += "_"
+        return flatten_str + "-" + algo + ".txt"
