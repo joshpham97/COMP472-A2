@@ -2,7 +2,9 @@ import argparse
 from PuzzleSolver import PuzzleSolver
 import timeit
 
+
 def main():
+    """
     parser = argparse.ArgumentParser()
 
     parser.add_argument('algorithm')
@@ -10,13 +12,13 @@ def main():
     args = parser.parse_args()
 
     start = timeit.default_timer()
+    print("algorithm" + args.algorithm)
+    print("board_path" + args.board_path)
+"""
 
-    puzzleSolver = PuzzleSolver(args.board_path, args.algorithm)
+    puzzleSolver = PuzzleSolver("C:\\Users\\Dan\\Documents\\comp472\\A2\\COMP472-A2\\puzzle.txt",
+                                "idp")  # args.board_path, args.algorithm)
     puzzleSolver.run()
-
-    stop = timeit.default_timer()
-
-    puzzleSolver.export(stop-start)
 
 
 main()

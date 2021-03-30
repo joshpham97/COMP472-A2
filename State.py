@@ -10,9 +10,36 @@ class State:
         self.key = key
 
         if self.state:
-            self.map = ''.join(self.hex_number(e) for e in self.state)
+            self.map = ''.join(str(self.hex_number(e)) for e in self.state)
 
     def hex_number(self, number):
+        strNumber = str(number)
+        if len(strNumber) == 1:
+            return number
+        elif len(strNumber) == 2:
+            if strNumber[0] == "1":
+                return "!" + strNumber[1]
+            elif strNumber[0] == "2":
+                return "@" + strNumber[1]
+            elif strNumber[0] == "3":
+                return "#" + strNumber[1]
+            elif strNumber[0] == "4":
+                return "$" + strNumber[1]
+            elif strNumber[0] == "5":
+                return "%" + strNumber[1]
+            elif strNumber[0] == "6":
+                return "^" + strNumber[1]
+            elif strNumber[0] == "7":
+                return "&" + strNumber[1]
+            elif strNumber[0] == "8":
+                return "*" + strNumber[1]
+            elif strNumber[0] == "9":
+                return "(" + strNumber[1]
+        elif len(strNumber) == 3 and strNumber[0] == "1" and strNumber[1] == "0":
+            return ")" + strNumber[2]
+        else:
+            return str(number)
+        """
         hex = {
             1: "1",
             2: "2",
@@ -41,6 +68,7 @@ class State:
             25: "P"
         }
         return hex.get(number)
+        """
 
     def __eq__(self, other):
         return self.map == other.map
