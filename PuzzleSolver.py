@@ -27,6 +27,7 @@ class PuzzleSolver:
     board_len = 0
     board_side = 0
     start = 0
+    search_path = []
 
     puzzle_list = list()
 
@@ -58,6 +59,7 @@ class PuzzleSolver:
         self.board_len = 0
         self.board_side = 0
         self.start = 0
+        self.search_path = []
 
     def set_new_state(self, puzzle):
         self.initial_state = puzzle
@@ -74,19 +76,19 @@ class PuzzleSolver:
                 algorithm = ""
                 if i == 0:
                     self.dfs()
-                    algorithm = "dfs"
+                    algorithm = "-dfs"
                 elif i == 1:
                     self.idp()
-                    algorithm = "idp"
+                    algorithm = "-idp"
                 elif i == 2:
                     self.ast("h1")
-                    algorithm = "ast_h1(manhattan)"
+                    algorithm = "-ast_h1(manhattan)"
                 elif i == 3:
                     self.ast("h2")
-                    algorithm = "ast_h2(euclidean_distances)"
+                    algorithm = "-ast_h2(euclidean_distances)"
                 elif i == 4:
                     self.ast("h3")
-                    algorithm = "ast_h3(out_row_column)"
+                    algorithm = "-ast_h3(out_row_column)"
                 solution_name = self.flatten_puzzle(puzzle, algorithm)
                 self.export(solution_name)
 
@@ -99,6 +101,10 @@ class PuzzleSolver:
         # file = open('search_path.txt', 'a')
         while stack and time_limit_exceeded(limit):
             node = stack.pop()
+            number_moved = "Initial puzzle" if node.number_moved is None else str(node.number_moved)
+            move_to = "" if node.move == 0 else str(node.move)
+
+            self.search_path.append(self.flatten_puzzle(node.state, "") + " " + number_moved + " " + move_to)
             # print(node.state)
             # file.write(''.join([str(elem) for elem in node.state]) + "\n")
             explored.add(node.map)
@@ -174,6 +180,10 @@ class PuzzleSolver:
             node = heappop(heap)
             # locate the state in the node
             explored.add(node[2].map)
+            number_moved = "Initial puzzle" if node[2].number_moved is None else str(node[2].number_moved)
+            move_to = "" if node[2].move is None else str(node[2].move)
+
+            self.search_path.append(self.flatten_puzzle(node[2].state, "") + " " + number_moved + " " + move_to)
 
             # check if we reached our goal
             if node[2].state == self.goal_state:
@@ -277,7 +287,7 @@ class PuzzleSolver:
             time = stop - self.start
             moves = self.backtrace()
 
-            file = open(solution_file_name, 'w')
+            file = open(solution_file_name + ".txt", 'w')
             file.write("path_to_goal: " + str(moves))
             file.write("\ncost_of_path: " + str(len(moves)))
             file.write("\nnodes_expanded: " + str(self.nodes_expanded))
@@ -287,10 +297,14 @@ class PuzzleSolver:
             file.write("\nrunning_time: " + format(time, '.8f') + "\n\n\n")
             file.close()
         else:
-            file = open(solution_file_name, 'w')
+            file = open(solution_file_name + ".txt", 'w')
             file.write("puzzle: " + str(self.initial_state))
             file.write("\nexceed_time_limit: 60sec\n\n\n")
             file.close()
+
+        with open("search_path_" + solution_file_name + ".txt", 'w') as f:
+            for item in self.search_path:
+                f.write("%s\n" % item)
 
     def h1(self, state):
         return sum(abs(board_index % self.board_side - goal_index % self.board_side) +
@@ -318,4 +332,4 @@ class PuzzleSolver:
             flatten_str += str(e)
             if (i+1) % self.board_side == 0:
                 flatten_str += "_"
-        return flatten_str + "-" + algo + ".txt"
+        return flatten_str + algo
