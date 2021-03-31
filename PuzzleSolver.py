@@ -103,6 +103,35 @@ class PuzzleSolver:
 
         self.generate_statistics();
 
+    def run_algorithm_by_name(self, algorithm):
+        for puzzle in self.puzzle_list:
+            self.reset_state()
+            self.start = timeit.default_timer()
+            self.set_new_state(puzzle)
+            file_postfix = ""
+            algorithm = ""
+
+            if algorithm == "dfs":
+                self.dfs()
+                file_postfix = "-dfs"
+            elif algorithm == "idp":
+                self.idp()
+                file_postfix = "-idp"
+            elif algorithm == "h1":
+                self.ast("h1")
+                file_postfix = "-ast_h1(manhattan)"
+            elif algorithm == "h2":
+                self.ast("h2")
+                file_postfix = "-ast_h2(euclidean_distances)"
+            elif algorithm == "h4":
+                self.ast("h3")
+                file_postfix = "-ast_h3(out_row_column)"
+            solution_name = self.flatten_puzzle(puzzle, file_postfix)
+
+            self.export(solution_name, algorithm)
+
+        self.generate_statistics();
+
     def dfs(self, threshold=0):
         explored, stack = set(), list([State(self.initial_state, None, None, 0, 0, 0, 0)])
 
@@ -363,10 +392,16 @@ class PuzzleSolver:
                         total_no_solution += 1
 
             # We dont consider no solution in our average
-            average_solution_length = total_solution_length / total_with_solution
-            average_search_path_length = total_search_path_length / total_with_solution
-            average_execution_time = total_execution_time / total_with_solution
-            average_cost = total_cost / total_with_solution
+            if total_with_solution != 0:
+                average_solution_length = total_solution_length / total_with_solution
+                average_search_path_length = total_search_path_length / total_with_solution
+                average_execution_time = total_execution_time / total_with_solution
+                average_cost = total_cost / total_with_solution
+            else:
+                average_solution_length = 0
+                average_search_path_length = 0
+                average_execution_time = 0
+                average_cost = 0
 
             # No solution average is calculate based on the total solution
             average_no_solution = total_no_solution / (total_with_solution+total_no_solution)
