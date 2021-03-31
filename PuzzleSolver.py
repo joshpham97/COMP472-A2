@@ -404,7 +404,10 @@ class PuzzleSolver:
                 average_cost = 0
 
             # No solution average is calculate based on the total solution
-            average_no_solution = total_no_solution / (total_with_solution+total_no_solution)
+            if (total_with_solution+total_no_solution) != 0:
+                average_no_solution = total_no_solution / (total_with_solution+total_no_solution)
+            else:
+                average_no_solution = 0
 
             # Export the statistics
             file = open("./resources/statistics_" + algo + ".txt", 'w')
