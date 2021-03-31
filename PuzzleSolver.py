@@ -357,7 +357,7 @@ class PuzzleSolver:
             search_path_length = len(self.search_path)
             self.results.append(Result(algorithm, solution_file_name, 0, search_path_length, False, 0, 60))
 
-            file = open(solution_file_name + ".txt", 'w')
+            file = open("./resources/" + solution_file_name + ".txt", 'w')
             file.write("puzzle: " + str(self.initial_state))
             file.write("\nNo solution")
             file.write("\nexceed_time_limit: 60sec\n\n\n")
