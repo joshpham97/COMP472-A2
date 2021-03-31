@@ -109,7 +109,6 @@ class PuzzleSolver:
             self.start = timeit.default_timer()
             self.set_new_state(puzzle)
             file_postfix = ""
-            algorithm = ""
 
             if algorithm == "dfs":
                 self.dfs()
@@ -197,7 +196,7 @@ class PuzzleSolver:
             heuristic = getattr(self, heur)
         except AttributeError:
             raise NotImplementedError("Class `{}` does not implement `{}`".format(self.__class__.__name__, heur))
-        limit = perf_counter() + 60
+        limit = perf_counter() + 300
         explored, heap, heap_entry, counter = set(), list(), {}, itertools.count()
         # calculate the heuristic
         key = heuristic(self.initial_state)
