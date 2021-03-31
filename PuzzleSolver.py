@@ -306,14 +306,21 @@ class PuzzleSolver:
             else:
                 return None
 
-    def backtrace(self):
+    def backtrace(self, algorithm):
         moves = list()
         current_node = self.goal_node
+        cost_of_path = 0
         while self.initial_state != current_node.state:
+            if algorithm == "h1":
+                cost_of_path += self.h1(current_node.state)
+            elif algorithm == "h2":
+                cost_of_path += self.h2(current_node.state)
+            elif algorithm == "h3":
+                cost_of_path += self.h3(current_node.state)
             moves.insert(0, str(current_node.number_moved) + " " + current_node.move)
             current_node = current_node.parent
 
-        return moves
+        return moves, cost_of_path
 
     def export(self, solution_file_name, algorithm):
 
@@ -323,16 +330,10 @@ class PuzzleSolver:
             time = stop - self.start
 
             # Gather statistics relating to the search
-            moves = self.backtrace()
+            moves, cost_of_path = self.backtrace(algorithm)
             solution_length = len(moves) + 1
-            cost_of_path = len(moves) # For dfs, idp we use cost of 1
+            cost_of_path = cost_of_path if cost_of_path != 0 else 1 #len(moves) # For dfs, idp we use cost of 1
             search_path_length = len(self.search_path)
-            if algorithm == "h1":
-                cost_of_path = self.h1(self.goal_node.state)
-            elif algorithm == "h2":
-                cost_of_path = self.h2(self.goal_node.state)
-            elif algorithm == "h3":
-                cost_of_path = self.h3(self.goal_node.state)
 
             # Store the results for statistic later
             self.results.append(Result(algorithm, solution_file_name, solution_length, search_path_length, True, cost_of_path, time))
