@@ -108,24 +108,19 @@ class PuzzleSolver:
             self.reset_state()
             self.start = timeit.default_timer()
             self.set_new_state(puzzle)
-            file_postfix = ""
+            file_postfix = "-" + str(self.board_side) + "x" + str(self.board_side)
 
             if algorithm == "dfs":
                 self.dfs()
-                file_postfix = "-dfs"
             elif algorithm == "idp":
                 self.idp()
-                file_postfix = "-idp"
             elif algorithm == "h1":
                 self.ast("h1")
-                file_postfix = "-ast_h1(manhattan)"
             elif algorithm == "h2":
                 self.ast("h2")
-                file_postfix = "-ast_h2(euclidean_distances)"
-            elif algorithm == "h4":
+            elif algorithm == "h3":
                 self.ast("h3")
-                file_postfix = "-ast_h3(out_row_column)"
-            solution_name = self.flatten_puzzle(puzzle, file_postfix)
+            solution_name = file_postfix + "_" + algorithm
 
             self.export(solution_name, algorithm)
 
@@ -196,7 +191,7 @@ class PuzzleSolver:
             heuristic = getattr(self, heur)
         except AttributeError:
             raise NotImplementedError("Class `{}` does not implement `{}`".format(self.__class__.__name__, heur))
-        limit = perf_counter() + 300
+        limit = perf_counter() + 60
         explored, heap, heap_entry, counter = set(), list(), {}, itertools.count()
         # calculate the heuristic
         key = heuristic(self.initial_state)
@@ -317,6 +312,8 @@ class PuzzleSolver:
                 cost_of_path += self.h2(current_node.state)
             elif algorithm == "h3":
                 cost_of_path += self.h3(current_node.state)
+            else:
+                cost_of_path += 1
             moves.insert(0, str(current_node.number_moved) + " " + current_node.move)
             current_node = current_node.parent
 
@@ -332,7 +329,7 @@ class PuzzleSolver:
             # Gather statistics relating to the search
             moves, cost_of_path = self.backtrace(algorithm)
             solution_length = len(moves) + 1
-            cost_of_path = cost_of_path if cost_of_path != 0 else 1 #len(moves) # For dfs, idp we use cost of 1
+            # cost_of_path = cost_of_path if cost_of_path != 0 else 1 #len(moves) # For dfs, idp we use cost of 1
             search_path_length = len(self.search_path)
 
             # Store the results for statistic later
@@ -349,10 +346,6 @@ class PuzzleSolver:
             file.write("\nrunning_time: " + format(time, '.8f') + "\n\n\n")
             file.close()
 
-            # Output search path
-            with open("./resources/search_path_" + solution_file_name + ".txt", 'w') as f:
-                for item in self.search_path:
-                    f.write("%s\n" % item)
         else:
             search_path_length = len(self.search_path)
             self.results.append(Result(algorithm, solution_file_name, 0, search_path_length, False, 0, 60))
@@ -363,11 +356,10 @@ class PuzzleSolver:
             file.write("\nexceed_time_limit: 60sec\n\n\n")
             file.close()
 
-            # Output search path
-            file = open("./resources/search_path_" + solution_file_name + ".txt", 'w')
-            file.write("\nNo solution")
-            file.write("\nexceed_time_limit: 60sec\n\n\n")
-            file.close()
+        # Output search path
+        with open("./resources/search_path_" + solution_file_name + ".txt", 'w') as f:
+            for item in self.search_path:
+                f.write("%s\n" % item)
 
     def generate_statistics(self):
         algorithms = ["dfs", "idp", "h1", "h2", "h3"]
@@ -382,10 +374,11 @@ class PuzzleSolver:
 
             for r in self.results:
                 if r.algorithm == algo:
+                    total_execution_time += r.execution_time
+                    total_search_path_length += r.search_path_length
+
                     if r.solution_found:
                         total_solution_length += r.solution_length
-                        total_search_path_length += r.search_path_length
-                        total_execution_time += r.execution_time
                         total_cost += r.cost
                         total_with_solution += 1
                     else:
@@ -394,20 +387,22 @@ class PuzzleSolver:
             # We dont consider no solution in our average
             if total_with_solution != 0:
                 average_solution_length = total_solution_length / total_with_solution
-                average_search_path_length = total_search_path_length / total_with_solution
-                average_execution_time = total_execution_time / total_with_solution
                 average_cost = total_cost / total_with_solution
             else:
                 average_solution_length = 0
-                average_search_path_length = 0
-                average_execution_time = 0
                 average_cost = 0
 
             # No solution average is calculate based on the total solution
-            if (total_with_solution+total_no_solution) != 0:
-                average_no_solution = total_no_solution / (total_with_solution+total_no_solution)
+            total_puzzles = total_with_solution+total_no_solution
+            if total_puzzles != 0:
+                average_search_path_length = total_search_path_length / total_puzzles
+                average_execution_time = total_execution_time / total_puzzles
+                average_no_solution = total_no_solution / total_puzzles
             else:
                 average_no_solution = 0
+                average_search_path_length = 0
+                average_execution_time = 0
+
 
             # Export the statistics
             file = open("./resources/statistics_" + algo + ".txt", 'w')

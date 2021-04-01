@@ -10,10 +10,11 @@ class Result:
     def __init__(self, algorithm, puzzle, solution_length, search_path_length, solution_found, cost, execution_time):
         self.algorithm = algorithm
         self.puzzle = puzzle
+        self.execution_time = execution_time
+        self.search_path_length = search_path_length
 
         if solution_found is True:
             self.solution_length = solution_length
-            self.search_path_length = search_path_length
             self.solution_found = solution_found
             self.cost = cost
-            self.execution_time = execution_time
+

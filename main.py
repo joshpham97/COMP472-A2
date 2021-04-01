@@ -16,7 +16,8 @@ def main():
     print("board_path" + args.board_path)
 """
 
-    puzzleSolver = PuzzleSolver("C:\\Users\\Dan\\Documents\\comp472\\A2\\COMP472-A2\\puzzle.txt")  # args.board_path, args.algorithm)
+    puzzleSolver = PuzzleSolver("puzzle.txt")  # args.board_path, args.algorithm)
+    # puzzleSolver.run_algorithm_by_name("h2")
     puzzleSolver.run()
 
 
